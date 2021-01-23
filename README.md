@@ -43,4 +43,5 @@ A bash script implementing a git-flow to produce safe, neat, rebased + sqashed P
 ### Big credit:
 
 `clean-push` is based on method (1) of [this excellent page by Lars Kellogg-Stedman](https://blog.oddbit.com/post/2019-06-17-avoid-rebase-hell-squashing-wi/)
-Before reading that page, I had a least 3 unsatisfactory solutions to the problem, all of which fell short on some aspect described above.
+
+Before reading that page, I tried several unsatisfactory solutions to the problem, all of which fell short on some aspect of the problems described above.
