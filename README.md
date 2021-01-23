@@ -2,9 +2,9 @@
 
 A bash script implementing a git-flow to produce safe, neat, rebased + sqashed PRs
 
-***(Note: in the below, I use `master` as the generic name for the branch you have branched from
+*(Note: in the below, I use `master` as the generic name for the branch you have branched from
  some call this "parent branch" although git doesn't really support parent/child relationships
- between branches, branch names are just `refs`, i.e aliases for commit-ids)***
+ between branches, branch names are just `refs`, i.e aliases for commit-ids)*
 
 ### Have you ever been frustrated with `git` because:
 
@@ -17,7 +17,9 @@ A bash script implementing a git-flow to produce safe, neat, rebased + sqashed P
 - You wanted to reuse a branch, but there was too much legacy in its commits so you had to start a new one
 - You resorted to `git diff origin/master` + clean branch + `git apply` but found the multi-step process too complex/involved 
 
-### If you answered "yes" to any of the above, `clean-push` may be just the script you always wanted to improve your git workflow.
+### Did you answer "yes" to any of the above?
+
+`clean-push` may be just the script you always wanted to improve your git workflow.
 
 `clean-push` implements the following:
 
@@ -42,4 +44,3 @@ A bash script implementing a git-flow to produce safe, neat, rebased + sqashed P
 
 `clean-push` is based on method (1) of [this excellent page by Lars Kellogg-Stedman](https://blog.oddbit.com/post/2019-06-17-avoid-rebase-hell-squashing-wi/)
 Before reading that page, I had a least 3 unsatisfactory solutions to the problem, all of which fell short on some aspect described above.
-
