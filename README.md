@@ -2,24 +2,24 @@
 
 A bash script implementing a git-flow to produce safe, neat, rebased + sqashed PRs
 
-*(Note: in the below, I use `master` as the generic name for the branch you have branched from
- some call this "parent branch" although git doesn't really support parent/child relationships
+*(Note: in the below, I use `master` as the generic name for the branch you have branched from.
+ Some call it "the parent branch" although git doesn't really support parent/child relationships
  between branches, branch names are just `refs`, i.e aliases for commit-ids)*
 
 ### Have you ever been frustrated with `git` because:
 
-- You started a long-lived branch with and your history of commits became too messy when the time has come to publish 
-- You had duplicate or overlapping commits because of history-changing squashes & rebases
-- A commit was reverted but instead of having an empty delta you had both commit + reverted changes
-- When you tried to rebase, you got into "rebase hell" (continue, skip, abort) loop that seemed to never end?
+- You started a long-lived branch with and your history of commits became too messy when the time has come to publish your changes? 
+- You had duplicate or overlapping commits because of history-changing squashes & rebases?
+- A commit has been reverted, but instead of having an empty delta you had both commit + reverted changes?
+- When you tried to rebase, you got into "rebase hell" (`continue, skip, abort`) loop that seemed to never end?
 - Syncing your repo with `origin/master` created much more conflicts than expected?
-- Your push after a merge unexpectedly included someone-elses changes due to a messy merge with `master` and diff against a prior PR?
-- You wanted to reuse a branch, but there was too much legacy in its commits so you had to start a new one
-- You resorted to `git diff origin/master` + clean branch + `git apply` but found the multi-step process too complex/involved 
+- A push after a merge unexpectedly included someone-elses changes due to a messy merge with `master` and 3-way diff against a prior PR?
+- You wanted to reuse a branch, but there was too much legacy in its commits so you had to start a new one and replay all your changes again?
+- You resorted to (`git diff` + `git apply`) or (`stash` + `pop`) or (a loop of `git cherry-pick`s from prior work) but found the multi-step process too complex/involved?
 
 ### Did you answer "yes" to any of the above?
 
-`clean-push` may be just the script you always wanted to improve your git workflow.
+If so, `clean-push` may be just the script you always wanted to improve your git workflow.
 
 `clean-push` implements the following:
 
