@@ -1,0 +1,340 @@
+#!/bin/bash
+#
+# Create a clean (rebased + squashed) pull-request while avoiding
+# git messy-history, rebase-loops, dup-commits & conflict hell.
+#
+# Based on method (1) of this excellent page:
+#    https://blog.oddbit.com/post/2019-06-17-avoid-rebase-hell-squashing-wi/
+#
+PROG="$(basename "$0")"
+
+function err() {
+    echo "$PROG: $@" >&2
+}
+
+function current-branch() {
+    git rev-parse --abbrev-ref HEAD
+}
+
+function ensure-clean() {
+    git diff --exit-code || {
+        err "sorry! repo is not clean (please commit or stash changes)"
+        exit 1
+    }
+    printf "$PROG: cool: repo is clean (fully committed)\n"
+}
+
+function ensure-delta-exists() {
+    git diff --exit-code "$MB" >/dev/null
+    status="$?"
+    case "$status" in (0)
+        err "no difference between $MB and $FB: nothing to do!"
+        exit 0 ;;
+    esac
+}
+
+#
+# sync-branch branchname
+#   make branchname fully synced with latest $MB
+#
+function sync-branch() {
+    local branch="$1"
+    git checkout "$branch" && git pull origin "$MB"
+}
+
+#
+# Find the parent PPID given any PID
+#
+function parent_pid_of() {
+    local pid="$1"
+
+    #
+    # Linux /proc filesystem dependent, doesn't work on Macs
+    #       cut -d' ' -f4 "/proc/$pid/stat"
+    # Universal (GNU & BSD) ps call printing only PPID, sans header
+    # This should works on both Linux and OS-X
+    ps -o ppid= -p "$pid" |grep -Eo '[0-9]+'
+}
+
+#
+# Find the command basename (no leading path) of a PID
+#
+function cmd_of() {
+    local pid="$1"
+
+    # Linux /proc filesystem dependent, doesn't work on Macs
+    #       cut -d' ' -f4 "/proc/$pid/stat"
+
+    # Universal (GNU & BSD) ps call printing only COMMAND, sans header
+    ps -o command= -p "$pid"| sed 's|/.*/||; s| .*$||'
+}
+
+function has-parent-process-named() {
+    # Safety function to check if any ancestor process
+    # of the calling process matches $1
+    # (goal is to detect being called from a githook or more
+    #  generally, detect if 'git' is an ancestor process.)
+    local pname="$1"
+    local pid="$$"
+
+    while true; do
+        local parent_pid="$(parent_pid_of "$pid")"
+        local parent_cmd="$(cmd_of "$parent_pid")"
+
+        # echo "pid=$pid  parent_pid=$parent_pid parent_cmd=$parent_cmd"
+
+        if [[ "$parent_cmd" =~ $pname ]]; then
+            echo "Found '$pname': pid=$parent_pid: $parent_cmd"
+            return 0
+        fi
+        pid="$parent_pid"
+        if [[ "$pid" == 1 ]]; then
+            : Got to init process. Stop.
+            break
+        fi
+    done
+    return 1
+}
+
+function avoid-running-from-hook() {
+    # We should never run this script from a hook
+    # It may cause unexpected damage (git commit, merge, reset)
+    # so we check and force immediate exit if we detect this condition
+
+    # As of git 2.18 GIT_DIR is no longer set! Need a safer trick.
+    if has-parent-process-named 'git'; then
+        err "running from a hook: 'git' is a parent. exit 0"
+        exit 0
+    fi
+
+    # Extra safety fall back (doesn't work since git 2.18)
+    if [[ -n "$GIT_DIR" ]]; then
+        err "running from a hook: \$GIT_DIR=$GIT_DIR. exit 0"
+        exit 0
+    fi
+}
+
+#
+# script-cmd is the work-horse of this script.
+# 'main' can be simply a sequence of multiple calls to it.
+#
+# It runs a predetermined sequence of shell commands in order
+# while pausing at each step and allowing the user to talk, explain,
+# rethink, and even edit/correct the command before finally
+# executing it when hitting the [return] key.
+#
+# It also supports an explanation/comment arg for each command executed.
+#
+# It has 3 goals:
+#   1) Ensure we get all the little details of a sequence right and
+#      never make a mistake during an actual demo or presentation
+#   2) Save time typing stuff
+#   3) Anyone else can reproduce what we did perfectly in their own env.
+#
+# Usage:
+#   script-cmd [options] 'header/explanation string'  'command string'
+#   options (disable switches):
+#       -p  don't pause for user to hit [enter]
+#       -h  don't print the header-string
+#       -s  don't advance the step
+#       -e  don't echo the command (be silent), just execute
+#       -c  don't execute the command
+#
+function script-cmd() {
+    # By default: do all the above (-<x> disables)
+    opt_p=1; opt_h=1; opt_s=1; opt_e=1 opt_c=1
+
+    # Set this to 0 Iff your bash is old (<4.2 ?)
+    # If so, you can't edit command in place, shame!
+    I_OPT=1
+
+    # Must initialize OPTIND since it doesn't reset between
+    # calls to 'script-cmd()'!
+    OPTIND=1
+    while getopts 'phsec' opt; do
+        # Apply disable switches
+        case "$opt" in
+            (p) opt_p= ;;
+            (h) opt_h= ;;
+            (s) opt_s= ;;
+            (e) opt_e= ;;
+            (c) opt_c= ;;
+        esac
+    done
+    shift $((OPTIND-1))
+
+    header="$1"
+    cmd="$2"
+    # echo "script-cmd: args: |$@| header=|$header| cmd=|$cmd| OPTIND=$OPTIND"
+
+    case "$opt_s" in (1)
+        step=$(($step+1)) ;;
+    esac
+
+    if [[ ! -z "$opt_h" ]]; then
+        echo "-----------------------------------------------------------------"
+        echo "($step) $header"
+    fi
+
+    if [[ "$opt_p" == 1 ]]; then
+        # read the command-line in, but allow real-time edits
+        # via GNU readline
+        if [[ "$I_OPT" == 1 ]]; then
+            read -ep "\$ " -i "$cmd" ans
+            # cmd may have been modified, so reassign it
+            cmd="$ans"
+        else
+            # Old bash: no 'read -i' support
+            # (Can't edit commands in-place)
+            ans="$cmd"
+            read -ep "\$ $cmd" ans
+        fi
+    else
+        if [[ "$opt_e" == 1 ]]; then
+            # If we have no readline/prompt we need to print
+            # the command so it can be seen by the audience
+            echo -n "\$ $cmd"
+        fi
+    fi
+
+    if [[ "$opt_c" == 1 ]]; then
+        # Run the command
+        eval "$cmd"
+        local status="$?"
+        echo
+        case "$status" in
+            (0) : ;;
+            (*) return "$status" ;;
+        esac
+    fi
+}
+
+function initial-checks() {
+
+    avoid-running-from-hook
+
+    if [[ "$FB" == "$MB" ]]; then
+        err "you're on 'master' already! Aborting."
+        exit 1
+    fi
+
+    if [[ "$FB" == "$TB" ]]; then
+        err "you're on the temporary branch!" \
+            "Must start on a real branch. Aborting."
+        exit 1
+    fi
+
+    ensure-clean
+    ensure-delta-exists
+
+    echo "Main branch:      $MB"
+    echo "Feature branch:   $FB"
+    echo "Temporary branch: $TB"
+}
+
+#
+#-- Settings
+#
+
+#
+# Hardwire this (your CICD, 'main' branch, usually the master branch)
+#
+MB="master"
+
+#
+# This branch is throwaway, temporary to do the sync/merge work in
+# a way that is totally non-destructive to any other branches
+# We remove it after the merge with $MB is successful.
+# We can call it whatever we want.
+#
+TB="temp-branch"
+
+#
+# feature branch, we're working on (the push to public is from here)
+#
+FB="$(current-branch)"
+
+#
+# --- main
+#
+avoid-running-from-hook
+
+initial-checks
+
+#
+# Step 1:
+#   - make sure we are 100% sync'ed with origin master
+#   - go back to our branch
+#
+script-cmd -p \
+    "Sync latest remote '$MB' -> local ($MB & $FB)" \
+    "sync-branch $MB && sync-branch $FB"
+
+#
+# Step 2: create clean tmp-branch off of $MB (master) and move to it
+#
+script-cmd -p \
+    "Create temporary work branch from '$MB' -> '$TB'" \
+    "git checkout -b $TB $MB"
+
+#
+# Step 3: squash + merge the differences between $MB and $FB
+#
+script-cmd -p \
+    "Marge + Squash delta from '$FB' (on pristine $TB branch)
+    Note: this is the (only) step where conflicts may be detected" \
+    "git merge --squash $FB"
+
+#
+# Step 4: commit the clean (1-piece diff) change
+#
+script-cmd \
+    "Commit on '$TB': please edit/clean the commit message in your editor
+
+    Note: the final form of this commit message is _exactly_ how it
+    will appear in the pushed PR. First line will be subject/heading." \
+    "git commit"
+
+#
+# Step 4a: verification of the clean delta:
+#          After the delta commit, actual files content must be equal
+#               $TB (temp branch) == $FB (feature branch)
+#          (git history may be different, but content is same)
+#
+script-cmd -p \
+    "Verify that: $TB (work branch) == $FB (feature branch)" \
+    "git diff --exit-code '$FB'"
+    status="$?"
+    case "$status" in
+        (0) echo "$PROG: cool: after commit: $TB == $FB" ;;
+        (*) err "unexpected differences found. Aborting"
+            exit 1 ;;
+    esac
+
+#
+# Step 5: force clean version -> feature branch
+#         This step may be destructive so let user interfere.
+#
+script-cmd \
+    "Return to $FB (feature-branch) & reset to clean squashed version" \
+    "git checkout '$FB' && git reset --hard '$TB'"
+
+#
+# Step 6: cleanup
+#
+script-cmd -p \
+    "Remove the temp/scratch work branch" \
+    "git branch -D $TB"
+
+#
+# If this script name has 'push' in it, will also do a push
+# The push is forced so no junk remains (and it has one diff)
+#
+case "$0" in (*push*)
+    #
+    # Step 7:
+    #
+    script-cmd \
+        "Force-push to origin (add --no-verify to skip 'make test')" \
+        "git push --set-upstream origin -f '$FB' " ;;
+esac
