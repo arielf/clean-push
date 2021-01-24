@@ -3,13 +3,23 @@
 # Create a clean (rebased + squashed) pull-request while avoiding
 # git messy-history, rebase-loops, dup-commits & conflict hell.
 #
-# Based on method (1) of this excellent page:
-#    https://blog.oddbit.com/post/2019-06-17-avoid-rebase-hell-squashing-wi/
+# Based on method (1) of this excellent page by Lars Kellogg-Stedman:
+#   Avoid rebase hell: squashing without rebasing · The Odd Bit
+#   https://blog.oddbit.com/post/2019-06-17-avoid-rebase-hell-squashing-wi/
 #
-PROG="$(basename "$0")"
-
+# With some improvements:
+#   - Streamlining: automate as much as possible
+#   - Doesn't hardwire the name of the 'master' branch
+#     (allows user-override, then falls-back on 'master', 'main')
+#   - Adds many safety checks
+#   - Good error messages in case something goes wrong
+#   - No prompting for steps that don't need human intervention
+#   - Ability to review and edit steps before execution
+#
+# Author: Ariel Faigon, 2021
+#
 function err() {
-    echo "$PROG: $@" >&2
+    echo "$0: $@" >&2
 }
 
 function current-branch() {
@@ -18,10 +28,10 @@ function current-branch() {
 
 function ensure-feature-branch-is-clean() {
     git diff --exit-code || {
-        err "sorry! '$FB' is not clean (please commit or stash changes)"
+        err "'$FB' is not clean (please commit or stash changes)"
         exit 1
     }
-    printf "$PROG: cool: repo is clean (fully committed)\n"
+    printf "$0: cool: repo is clean (fully committed)\n"
 }
 
 function ensure-delta-exists() {
@@ -39,7 +49,7 @@ function ensure-delta-exists() {
 #
 function sync-branch() {
     local branch="$1"
-    git checkout "$branch" && git pull origin "$MB"
+    git checkout "$branch" && git pull --commit origin "$MB"
 }
 
 #
@@ -308,7 +318,8 @@ initial-checks "$@"
 #   - go back to our branch
 #
 script-cmd -p \
-    "Sync latest remote '$MB' -> local ($MB & $FB)" \
+    "Pull latest remote '$MB' into local branches ($MB & $FB)
+    (conflicts may be detected)" \
     "sync-branch $MB && sync-branch $FB"
 
 #
@@ -322,8 +333,8 @@ script-cmd -p \
 # Step 3: squash + merge the differences between $MB and $FB
 #
 script-cmd -p \
-    "Marge + Squash delta from '$FB' (on pristine $TB branch)
-    Note: this is the (only) step where conflicts may be detected" \
+    "Merge + Squash delta from '$FB' (on pristine $TB branch)
+    (conflicts may be detected)" \
     "git merge --squash $FB"
 
 #
@@ -347,7 +358,7 @@ script-cmd -p \
     "git diff --exit-code '$FB'"
     status="$?"
     case "$status" in
-        (0) echo "$PROG: cool: after commit: $TB == $FB" ;;
+        (0) echo "$0: cool: after commit: $TB == $FB" ;;
         (*) err "unexpected differences found. Aborting"
             exit 1 ;;
     esac
@@ -379,3 +390,6 @@ case "$0" in (*push*)
         "Force-push to origin (add --no-verify to skip 'make test')" \
         "git push --set-upstream origin -f '$FB' " ;;
 esac
+
+# If we get here, it means all went well
+echo "$0: all done. Success!"
