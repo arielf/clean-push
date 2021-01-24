@@ -16,9 +16,9 @@ function current-branch() {
     git rev-parse --abbrev-ref HEAD
 }
 
-function ensure-clean() {
+function ensure-feature-branch-is-clean() {
     git diff --exit-code || {
-        err "sorry! repo is not clean (please commit or stash changes)"
+        err "sorry! '$FB' is not clean (please commit or stash changes)"
         exit 1
     }
     printf "$PROG: cool: repo is clean (fully committed)\n"
@@ -96,6 +96,24 @@ function has-parent-process-named() {
     return 1
 }
 
+function local-branch-exists() {
+    local branchname="$1"
+    git show-ref --verify --quiet "refs/heads/$branchname"
+    # $? == 0 means local branch <branchname> exists.
+}
+
+function get-main-branch-name() {
+    local arg="$1"
+    for branch in "$arg" 'master' 'main'; do
+        if [[ -z "$branch" ]]; then
+            continue
+        fi
+        if local-branch-exists "$branch"; then
+            echo "$branch"
+        fi
+    done
+}
+
 function avoid-running-from-hook() {
     # We should never run this script from a hook
     # It may cause unexpected damage (git commit, merge, reset)
@@ -113,6 +131,57 @@ function avoid-running-from-hook() {
         exit 0
     fi
 }
+
+function ensure-branches-exist() {
+    #
+    # $MB is your CICD 'main' branch. Usually called 'master'
+    # Use first arg: "$1" to override the default ('master').
+    #
+    MB="$(get-main-branch-name "$1")"
+
+    if [[ -z "$MB" ]]; then
+        err "Unable to determine \$MB (main branch) name! Aborting."
+        exit 1
+    fi
+
+    #
+    # This branch is throwaway, temporary to do the sync/merge work in
+    # a way that is totally non-destructive to any other branches
+    # We remove it after the merge with $MB is successful.
+    # We can call it whatever we want. It should never exist.
+    #
+    TB="temp-branch"
+    if local-branch-exists "$TB"; then
+        err "Temporary local branch '$TB' exists! Aborting."
+        err "Please remove it first: git branch -D '$TB'"
+        exit 1
+    fi
+
+    #
+    # feature branch, we're working on (the push to public is from here)
+    #
+    FB="$(current-branch)"
+
+    local branchname
+    for branchname in $MB $FB; do
+        if ! local-branch-exists "$branchname"; then
+            err "local branch $branchname doesn't exist! Aborting."
+            exit 1
+        fi
+    done
+
+    if [[ "$FB" == "$MB" ]]; then
+        err "you're on '$MB' already! Aborting."
+        exit 1
+    fi
+
+    if [[ "$FB" == "$TB" ]]; then
+        err "You're on the temporary branch!" \
+            "Must start on a real branch. Aborting."
+        exit 1
+    fi
+}
+
 
 #
 # script-cmd is the work-horse of this script.
@@ -139,10 +208,11 @@ function avoid-running-from-hook() {
 #       -s  don't advance the step
 #       -e  don't echo the command (be silent), just execute
 #       -c  don't execute the command
+#       -a  abort on any error in command
 #
 function script-cmd() {
     # By default: do all the above (-<x> disables)
-    opt_p=1; opt_h=1; opt_s=1; opt_e=1 opt_c=1
+    opt_p=1; opt_h=1; opt_s=1; opt_e=1; opt_c=1; opt_a=1
 
     # Set this to 0 Iff your bash is old (<4.2 ?)
     # If so, you can't edit command in place, shame!
@@ -159,6 +229,7 @@ function script-cmd() {
             (s) opt_s= ;;
             (e) opt_e= ;;
             (c) opt_c= ;;
+            (a) opt_a= ;;
         esac
     done
     shift $((OPTIND-1))
@@ -198,13 +269,17 @@ function script-cmd() {
     fi
 
     if [[ "$opt_c" == 1 ]]; then
+        echo
         # Run the command
         eval "$cmd"
         local status="$?"
-        echo
         case "$status" in
             (0) : ;;
-            (*) return "$status" ;;
+            (*) err "$cmd FAILED: status=$status"
+                case "$opt_a" in (1)
+                    exit 1 ;;
+                esac
+                return "$status" ;;
         esac
     fi
 }
@@ -213,18 +288,8 @@ function initial-checks() {
 
     avoid-running-from-hook
 
-    if [[ "$FB" == "$MB" ]]; then
-        err "you're on 'master' already! Aborting."
-        exit 1
-    fi
-
-    if [[ "$FB" == "$TB" ]]; then
-        err "you're on the temporary branch!" \
-            "Must start on a real branch. Aborting."
-        exit 1
-    fi
-
-    ensure-clean
+    ensure-branches-exist "$@"
+    ensure-feature-branch-is-clean
     ensure-delta-exists
 
     echo "Main branch:      $MB"
@@ -233,33 +298,9 @@ function initial-checks() {
 }
 
 #
-#-- Settings
-#
-
-#
-# Hardwire this (your CICD, 'main' branch, usually the master branch)
-#
-MB="master"
-
-#
-# This branch is throwaway, temporary to do the sync/merge work in
-# a way that is totally non-destructive to any other branches
-# We remove it after the merge with $MB is successful.
-# We can call it whatever we want.
-#
-TB="temp-branch"
-
-#
-# feature branch, we're working on (the push to public is from here)
-#
-FB="$(current-branch)"
-
-#
 # --- main
 #
-avoid-running-from-hook
-
-initial-checks
+initial-checks "$@"
 
 #
 # Step 1:
@@ -324,7 +365,7 @@ script-cmd \
 #
 script-cmd -p \
     "Remove the temp/scratch work branch" \
-    "git branch -D $TB"
+    "git branch -D '$TB'"
 
 #
 # If this script name has 'push' in it, will also do a push
