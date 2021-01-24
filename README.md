@@ -65,3 +65,21 @@ Then `clean-push` is probably not for you.
 `clean-push` is based on method (1) of [this excellent page by Lars Kellogg-Stedman](https://blog.oddbit.com/post/2019-06-17-avoid-rebase-hell-squashing-wi/)
 
 Before discovering that page, I tried several unsatisfactory solutions to the problem, all of which fell short on some aspect of the problems described above.
+
+## Portability notes
+
+`clean-push` is a simple bash script.
+
+It was developed and tested using:
+
+- bash 4.4.x
+- git 2.17
+
+Verified on Linux (Ubuntu 18.04) & Mac OS-X (10.15, Catalina).
+
+## Licence
+
+Written-by: Ariel Faigon, 2021
+
+Released under a liberal FOSS MIT licence.
+
