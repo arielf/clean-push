@@ -49,7 +49,7 @@ function ensure-delta-exists() {
 #
 function sync-branch() {
     local branch="$1"
-    git checkout "$branch" && git pull origin "$MB"
+    git checkout "$branch" && git pull --commit origin "$MB"
 }
 
 #
@@ -318,7 +318,8 @@ initial-checks "$@"
 #   - go back to our branch
 #
 script-cmd -p \
-    "Sync latest remote '$MB' -> local ($MB & $FB)" \
+    "Pull latest remote '$MB' into local branches ($MB & $FB)
+    (conflicts may be detected)" \
     "sync-branch $MB && sync-branch $FB"
 
 #
@@ -332,8 +333,8 @@ script-cmd -p \
 # Step 3: squash + merge the differences between $MB and $FB
 #
 script-cmd -p \
-    "Marge + Squash delta from '$FB' (on pristine $TB branch)
-    Note: this is the (only) step where conflicts may be detected" \
+    "Merge + Squash delta from '$FB' (on pristine $TB branch)
+    (conflicts may be detected)" \
     "git merge --squash $FB"
 
 #
@@ -389,3 +390,6 @@ case "$0" in (*push*)
         "Force-push to origin (add --no-verify to skip 'make test')" \
         "git push --set-upstream origin -f '$FB' " ;;
 esac
+
+# If we get here, it means all went well
+echo "$0: all done. Success!"
