@@ -1,6 +1,6 @@
 # clean-push
 
-A bash script implementing a git-flow to produce safe, neat, rebased + sqashed PRs
+git flow to produce safe, neat, rebased + sqashed PRs
 
 *(Note: in the below, I use `master` as the generic name for the branch you have branched from.
  Some call it "the parent branch" although git doesn't really support parent/child relationships
@@ -42,7 +42,25 @@ A bash script implementing a git-flow to produce safe, neat, rebased + sqashed P
 - Protected from being called from a git hook (a nested call which may cause damage)
 - Ability to pause & allow you to edit intermediate `git` steps before executing them. A common use-case for me is to be able to add `--no-verify` to the end of a `git commit` or `git push` sub-command in order to skip some long duration hooks.
 
-### Big credit:
+## Caveats
+
+### `clean-push` is intended for flows:
+
+- With a single common main branch (`main`, `master`, or similar).
+- Where developers want to be in sync with each other as much as possible
+- Where the main branch is the source of truth (e.g. used for continuous/automatic CICD and releases)
+- Encourages fast-development by many developers on the main branch
+- Detects conflicts as early as possible by frequent merging for other developer branches
+
+### If your flow:
+
+- Encourages multiple diverging separate development tracks
+- Rarely merges
+- Doesn't use continuous integration and deployment (CICD)
+
+Then `clean-push` is probably not for you.
+
+## Big credit:
 
 `clean-push` is based on method (1) of [this excellent page by Lars Kellogg-Stedman](https://blog.oddbit.com/post/2019-06-17-avoid-rebase-hell-squashing-wi/)
 
