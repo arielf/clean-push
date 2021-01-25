@@ -7,10 +7,14 @@ hard to full understand what problem `clean-push` actually solves.
 
 ### What's wrong with `rebase`?
 
-- It duplicates a commit, making the same delta multiple commit-id's
+- It duplicates commits, making the same delta have multiple commit-id's
 - In case of conflicts (even against your _own_ changes) it can become a multi-step tedious process.
-- It doesn't squash overlapping commits postponing the point of potential conflicts.
-- Because of duplicate-commits and lack of squashing similar, opposite, or overlapping changes, `rebase` often leads to what seems like a loop of applying the same changes over and over again.
+- It doesn't squash overlapping/cancelling commits
+- It makes code history look more complex & convoluted than necessary
+- In case of conflicts, it stops in a half-done state that is harder
+  to get out of, than in simpler merge commits.
+
+Because of duplicate-commits and lack of squashing similar, opposite, or overlapping changes, `rebase` often leads to what seems like a loop of applying the same changes over and over again.
 
 ### When I use rebase/squash I sometimes see other developer's changes in my diffs. Why?
 
@@ -19,17 +23,17 @@ This is due to the misunderstanding of diff (deltas).
 The question boils down to what two branches are you comparing, and in
 which order.
 
-One of the biggest misunderstandings of git is the following:
+One of the misunderstandings of git is the following:
 
 Conceptually, there are 2 branches (or copies thereof):
 
     - A main branch (shared with other developers)
     - A feature branch (the one you're working on on)
 
-When in fact, there are (at least) 4 branches:
+When in fact, there are (at least) 4 copies:
 
     - A _remote_ main branch (shared with other developers)
-    - A _local_ main branch (a copy of 1 but is often behind)
+    - A _local_ main branch (a copy of 1 but is often behind on updates)
     - A _local_ feature branch (the one you're working on)
     - A _remote_ feature branch (the one you push to for code reviews before landing on main)
 
@@ -39,10 +43,17 @@ For example, if you want to know what are your latest changes that
 were not yet pushed to your publicly visible feature branch. You can
 use the following:
 
+    # Assume we're here, on our private development branch
+    git checkout dev
+
+    #
+    # local difference between what's already commited and what's not
+    #
+    git diff
+
     #
     # Differences between local & remote 'dev' branch
     #
-    git checkout dev
     git diff remotes/origin/dev
     git diff origin/dev             # same ('remotes' is implied)
     git diff origin                 # same ('dev' is implied)
@@ -57,15 +68,17 @@ to the main branch you would instead do:
     git diff remotes/origin/main
     git diff origin/main            # same ('remotes' is implied)
 
-Note that now, the following is not the same as before:
+Note that now, the following will not diff vs main:
 
     git diff origin                 # NOT the same (because 'dev' is implied)
 
 So when you see a diff that doesn't make sense to you, ask yourself:
 
-- Are you comparing the right two objects?
-- Did you forget to push to your dev branch?
-- Did you forget to pull the latest main branch?
+- (0) Are you comparing the right two objects?
+- (1) Did you forget to push to your dev branch?
+- (2) Did you forget to pull remote main into the local main branch?
+- (3) Did you forget to merge (land) emote dev into remote main?
+- (4) Did you forget to pull the latest main branch _after_ the merge?
 
 ### I pushed (or pulled) but I still don't see the changes I expect...
 
