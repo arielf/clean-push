@@ -58,7 +58,7 @@ srm som:		#-- pull remote $(MB) -> local $(FB)
 	#
 	# pull remote $(MB) -> local $(MF)
 	#
-	git pull remotes/origin/$(MB)
+	git pull origin $(MB)
 
 s3 3way-sync:		#-- 3-way sync (remote+local $(MB) -> $(FB))
 	#
