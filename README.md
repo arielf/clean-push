@@ -81,5 +81,4 @@ Verified on Linux (Ubuntu 18.04) & Mac OS-X (10.15, Catalina).
 
 Written-by: Ariel Faigon, 2021
 
-Released under a liberal FOSS MIT licence.
-
+Released under the [MIT licence](LICENSE).
