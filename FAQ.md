@@ -30,27 +30,32 @@ Conceptually, there are 2 branches (or copies thereof):
     - A main branch (shared with other developers)
     - A feature branch (the one you're working on on)
 
-When in fact, there are (at least) 4 copies:
+When in fact, we have at least 4 copies `(dev + main) * (local + remote)`:
 
     - A _remote_ main branch (shared with other developers)
     - A _local_ main branch (a copy of 1 but is often behind on updates)
     - A _local_ feature branch (the one you're working on)
     - A _remote_ feature branch (the one you push to for code reviews before landing on main)
 
-So when you do a `git diff`, you often need to be more specific:
+Since `diff` order matters, there are ***2<sup>4</sup> = 16*** (!) different possible diffs between these 4 copies.
+
+So when you do a `git diff`, you need to be more specific:
 
 For example, if you want to know what are your latest changes that
-were not yet pushed to your publicly visible feature branch. You can
-use the following:
+were not yet committed, or pushed to your publicly visible feature branch, or merged into `main`.
+You can use the following:
 
     # Assume we're here, on our private development branch
     git checkout dev
+
+#### Uncomitted changes
 
     #
     # local difference between what's already commited and what's not
     #
     git diff
 
+#### Unpushed changes
     #
     # Differences between local & remote 'dev' branch
     #
@@ -58,27 +63,44 @@ use the following:
     git diff origin/dev             # same ('remotes' is implied)
     git diff origin                 # same ('dev' is implied)
 
-And if you want to know which of your local changes have not made it
-to the main branch you would instead do:
+#### Yet unmerged (with main) changes
 
     #
     # Differences between local 'dev' & remote 'main' branch
     #
-    git checkout dev
     git diff remotes/origin/main
+
+or:
     git diff origin/main            # same ('remotes' is implied)
 
-Note that now, the following will not diff vs main:
+Note that to compare local and remote `main` branches
+you need to change branches to `main` first because when your
+current branch is `dev` and you try to run `git diff origin`,
+'dev' is implied.
 
-    git diff origin                 # NOT the same (because 'dev' is implied)
+#### Merged main on remote but local main is now unsynced
+
+    #
+    # Close the full loop from remote to local:
+    #
+    git checkout main && git pull
+
+    #
+    # Go back to the dev branch
+    #
+    git checkout dev
+
 
 So when you see a diff that doesn't make sense to you, ask yourself:
 
-- (0) Are you comparing the right two objects?
-- (1) Did you forget to push to your dev branch?
-- (2) Did you forget to pull remote main into the local main branch?
-- (3) Did you forget to merge (land) emote dev into remote main?
-- (4) Did you forget to pull the latest main branch _after_ the merge?
+- (0) Are you comparing the right two objects and in the correct order?
+- (1) Did you forget to commit (locally)?
+- (2) Did you forget to push to your (remote) dev branch?
+- (3) Did you forget to pull remote main into the local main branch?
+- (4) Did you forget to merge (land) remote dev into remote main?
+- (5) Did you forget to pull the latest main branch _after_ the merge?
+
+Only going through all this (5) step process would ensure everything is in sync.
 
 ### I pushed (or pulled) but I still don't see the changes I expect...
 
@@ -86,13 +108,16 @@ Be aware that when you do a `pull` in your `dev` branch
 this does ***not*** necessarily pull the latest *remote* main branch.
 
 So to be 100% in sync between your local dev and the remote main,
-you need to:
+you need to perform more than one pull (fetch + merge) operation:
 
+    # sync local and remote main branches
     git checkout main && git pull
-    git checkout dev && git pull origin/main
+
+    # sync local dev with remote main
+    git checkout dev && git pull main
 
 And if you also want your remote copy of dev to have the same
-changes, you also need an additional:
+changes, you also need an additional push to remote:
 
     # push local dev changes to the remote copy (origin/dev)
     git push
