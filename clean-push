@@ -44,12 +44,12 @@ function ensure-delta-exists() {
 }
 
 #
-# sync-branch branchname
+# pull-main-branch-into branchname
 #   make branchname fully synced with latest $MB
 #
-function sync-branch() {
+function pull-main-branch-into() {
     local branch="$1"
-    git checkout "$branch" && git pull --commit origin "$MB"
+    git checkout "$branch" && git pull --commit --no-edit origin "$MB"
 }
 
 #
@@ -320,7 +320,7 @@ initial-checks "$@"
 script-cmd -p \
     "Pull latest remote '$MB' into local branches ($MB & $FB)
     (conflicts may be detected)" \
-    "sync-branch $MB && sync-branch $FB"
+    "pull-main-branch-into $MB && pull-main-branch-into $FB"
 
 #
 # Step 2: create clean tmp-branch off of $MB (master) and move to it
