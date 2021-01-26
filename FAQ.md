@@ -163,6 +163,6 @@ the `pull` to (current branch, and merge with HEAD implied).
     # Implies origin (most commonly: a remote copy, with the same branchname)
     git push
 
-    # Implies the local copy of branchname
+    # Implies merging the (local) copy of branchname into (local) current branch
     git merge branchname
 
