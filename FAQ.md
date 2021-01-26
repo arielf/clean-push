@@ -148,8 +148,8 @@ This repository on my local machine has the following `.git/config`
 At its core this `config` file gives symbolic names to different
 copies of the current repository.
 
-- The name 'origin' refers to the remote `github` host and URL.
-- The name 'main' refers to the main branch, which has a copy on the
+- The name *'origin'* refers to the remote `github` host and URL.
+- The name *'main'* refers to the main branch, which has a copy on the
   remote `github` host, but when I do a `merge` it uses the
   ***local*** copy rather than the remote copy.
 
