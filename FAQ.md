@@ -124,10 +124,9 @@ changes, you also need an additional push to remote:
 
 ### When is `git` implicit vs explicit?
 
-My repository is a full copy of the remote repository.
+My repository is a copy of the remote repository.
 
 This repository on my local machine has the following `.git/config`
-
 
 ```
 [core]
@@ -166,5 +165,4 @@ the `pull` to (current branch, and merge with HEAD implied).
 
     # Implies the local copy of branchname
     git merge branchname
-
 
