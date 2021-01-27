@@ -1,0 +1,58 @@
+#!/bin/bash
+
+function die() {
+    printf "$0: $@\n" >&2
+    exit 1
+}
+
+function current-branch() {
+    git rev-parse --abbrev-ref HEAD
+}
+
+function local-branch-exists() {
+    local branchname="$1"
+    git show-ref --verify --quiet "refs/heads/$branchname"
+    # $? == 0 means local branch <branchname> exists.
+}
+
+function get-main-branch-name() {
+    local arg="$1"
+    for branch in "$arg" 'master' 'main'; do
+        if [[ -z "$branch" ]]; then
+            continue
+        fi
+        if local-branch-exists "$branch"; then
+            echo "$branch"
+        fi
+    done
+}
+
+#
+# -- main
+#
+CB="$(current-branch)"
+MB="$(get-main-branch-name)"
+
+if git diff --exit-code; then
+    echo "(1) $CB branch is clean, cool"
+else
+    die "(1) $CB branch not clean. Need to commit (or stash) locally"
+fi
+
+if git diff --exit-code $CB origin/$CB; then
+    echo "(2) $CB branch: local == remote, no need to push, cool"
+else
+    die "(2) $CB branch: local != remote. Need to push"
+fi
+
+if git diff --exit-code $CB origin/$MB; then
+    echo "(3) local $CB == remote $MB, no need to remote-merge"
+else
+    die "(3) local $CB != remote $MB. Need to remote-merge"
+fi
+
+if git diff --exit-code $MB; then
+    echo "(3) local $CB == local $MB, no need to pull in $MB, cool"
+else
+    die "(3) local $CB != local $MB. Need to pull in local $MB"
+fi
