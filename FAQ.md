@@ -8,7 +8,7 @@ hard to full understand what problem `clean-push` actually solves.
 ### What's wrong with `rebase`?
 
 - It duplicates commits, making the same delta have multiple commit-id's
-- In case of conflicts (even against your _own_ changes) it can become a multi-step tedious process.
+- In case of conflicts (even against your _own_ changes) it can become a multi-step tedious process to resolve.
 - It doesn't squash overlapping/cancelling commits
 - It makes code history look more complex & convoluted than necessary
 - In case of conflicts, it stops in a half-done state that is harder
@@ -32,10 +32,10 @@ Conceptually, there are 2 branches (or copies thereof):
 
 When in fact, we have at least 4 copies `(dev + main) * (local + remote)`:
 
-    - A _remote_ main branch (shared with other developers)
-    - A _local_ main branch (a copy of 1 but is often behind on updates)
-    - A _local_ feature branch (the one you're working on)
-    - A _remote_ feature branch (the one you push to for code reviews before landing on main)
+  - A _remote_ main branch (shared with other developers)
+  - A _local_ main branch (a copy of 1 but is often behind on updates)
+  - A _local_ feature branch (the one you're working on)
+  - A _remote_ feature branch (the one you push to for code reviews before landing on main)
 
 Since `diff` order matters, there are ***2<sup>4</sup> = 16*** (!) different possible diffs between these 4 copies.
 
@@ -71,6 +71,7 @@ You can use the following:
     git diff remotes/origin/main
 
 or:
+
     git diff origin/main            # same ('remotes' is implied)
 
 Note that to compare local and remote `main` branches
@@ -96,11 +97,14 @@ So when you see a diff that doesn't make sense to you, ask yourself:
 - (0) Are you comparing the right two objects and in the correct order?
 - (1) Did you forget to commit (locally)?
 - (2) Did you forget to push to your (remote) dev branch?
-- (3) Did you forget to pull remote main into the local main branch?
-- (4) Did you forget to merge (land) remote dev into remote main?
-- (5) Did you forget to pull the latest main branch _after_ the merge?
+- (3) Did you forget to merge (land) remote dev into remote main?
+- (4) Did you forget to pull the newly merged remote main into the local main branch?
 
-Only going through all this (5) step process would ensure everything is in sync.
+Only going through all these steps would ensure everything is in sync.
+
+The utility [4-way-diff](4-way-diff) is a handy script to do
+all these comparisons and tell you which part of the circle
+has not been completed.
 
 ### I pushed (or pulled) but I still don't see the changes I expect...
 
