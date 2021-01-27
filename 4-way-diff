@@ -52,7 +52,7 @@ else
 fi
 
 if git diff --exit-code $MB; then
-    echo "(3) local $CB == local $MB, no need to pull in $MB, cool"
+    echo "(4) local $CB == local $MB, no need to pull in $MB, cool"
 else
-    die "(3) local $CB != local $MB. Need to pull in local $MB"
+    die "(4) local $CB != local $MB. Need to pull in local $MB"
 fi
