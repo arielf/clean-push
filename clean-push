@@ -18,8 +18,12 @@
 #
 # Author: Ariel Faigon, 2021
 #
+function out() {
+    echo "$0: $@"
+}
+
 function err() {
-    echo "$0: $@" >&2
+    out "$@" >&2
 }
 
 function current-branch() {
@@ -41,6 +45,23 @@ function ensure-delta-exists() {
         err "no difference between $MB and $FB: nothing to do!"
         exit 0 ;;
     esac
+}
+
+#
+# Safely/idempotently & quiety remove the temp branch
+#
+function delete-temp-branch() {
+    if local-branch-exists "$TB"; then
+        git branch -D "$TB" || true
+    fi
+}
+
+function empty-diff-vs() {
+    git diff --exit-code --quiet "$1"
+}
+
+function clean-recover-from-temp() {
+    git checkout "$FB" && delete-temp-branch
 }
 
 #
@@ -299,6 +320,19 @@ function script-cmd() {
     fi
 }
 
+#
+# do-forced-push
+#   If this script name has 'push' in it, will also do a push
+#   The push is forced (-f) so no junk remains (and it has one diff)
+#
+function do-forced-push() {
+    case "$0" in (*push*)
+        script-cmd \
+            "Force-push to origin (add --no-verify to skip 'make test')" \
+            "git push --set-upstream origin -f '$FB' " ;;
+    esac
+}
+
 function initial-checks() {
 
     avoid-running-from-hook
@@ -343,6 +377,24 @@ script-cmd -p \
     "git merge --squash $FB"
 
 #
+# Short circuit a rare case of 'nothing added to commit' error
+# in the next commit attempt
+#
+# e.g. happens when delta by another developer is already included
+# in my changes.
+#
+if empty-diff-vs "$FB"; then
+    out "Good news: after-local merge+squash '$TB' is identical to '$FB'"
+    out "IOW: there's nothing to integrate from $MB -> nothing more to do."
+    out "(Returning to '$FB' and removing '$TB')"
+
+    clean-recover-from-temp
+    do-forced-push
+
+    exit 0
+fi
+
+#
 # Step 4: commit the clean (1-piece diff) change
 #
 script-cmd \
@@ -384,17 +436,9 @@ script-cmd -p \
     "git branch -D '$TB'"
 
 #
-# If this script name has 'push' in it, will also do a push
-# The push is forced so no junk remains (and it has one diff)
+# Step 7:
 #
-case "$0" in (*push*)
-    #
-    # Step 7:
-    #
-    script-cmd \
-        "Force-push to origin (add --no-verify to skip 'make test')" \
-        "git push --set-upstream origin -f '$FB' " ;;
-esac
+do-forced-push
 
 # If we get here, it means all went well
 echo "$0: all done. Success!"
