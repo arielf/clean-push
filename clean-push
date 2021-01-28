@@ -377,32 +377,39 @@ script-cmd -p \
     "git merge --squash $FB"
 
 #
-# Short circuit a rare case of 'nothing added to commit' error
-# in the next commit attempt
-#
-# e.g. happens when delta by another developer is already included
-# in my changes.
-#
-if empty-diff-vs "$FB"; then
-    out "Good news: after-local merge+squash '$TB' is identical to '$FB'"
-    out "IOW: there's nothing to integrate from $MB -> nothing more to do."
-    out "(Returning to '$FB' and removing '$TB')"
-
-    clean-recover-from-temp
-    do-forced-push
-
-    exit 0
-fi
-
-#
 # Step 4: commit the clean (1-piece diff) change
 #
-script-cmd \
+script-cmd -a \
     "Commit on '$TB': please edit/clean the commit message in your editor
 
     Note: the final form of this commit message is _exactly_ how it
     will appear in the pushed PR. First line will be subject/heading." \
     "git commit"
+
+commit_status="$?"
+
+#
+# Short circuit a rare case of 'nothing added to commit' error
+# in the next commit attempt
+#
+# e.g. happens when delta by another developer is already included
+# in our changes.
+#
+if [[ "$commit_status" == 1 ]]; then
+    if empty-diff-vs "$FB"; then
+        out "Good news: after-local merge+squash '$TB' is identical to '$FB'"
+        out "IOW: there's nothing to integrate from $MB -> nothing more to do."
+        out "(Returning to '$FB' and removing '$TB')"
+
+        clean-recover-from-temp
+        do-forced-push
+
+        exit 0
+    else
+        err "Commit failed, bailing out! NOTE: remaining on $TB"
+        exit "$commit_status"
+    fi
+fi
 
 #
 # Step 4a: verification of the clean delta:
