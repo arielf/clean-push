@@ -89,11 +89,12 @@ pushed, and merged remotely, but your local main branch is now
 a step behind (because the merge was only done on the remote):
 
 ```
-[full (reverse) diff comes here]
+[full diff comes here]
 
-....
+4-way-diff: (4) local dev != local main. Need to pull in local main
+To fix:
+        git checkout main && git pull && git checkout dev
 ```
-
 
 And finally, the message you get when everything is in-sync:
 
