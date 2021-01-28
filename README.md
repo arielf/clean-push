@@ -55,10 +55,9 @@ the full circle of comparisons:
   - local dev vs remote master/main
   - remote dev vs local copy of main (the 'tracking' branch for main)
 
-Try it and it can help you to quickly diagnose what may still
-not be in-sync.
+Try it and it can help you to quickly diagnose what may still not be in-sync.
 
-Here's for example the message you get when something isn't committed yet:
+***Here's for example the message you get when something isn't committed yet:***
 
 ```
 [full diff comes here]
@@ -66,8 +65,8 @@ Here's for example the message you get when something isn't committed yet:
 4-way-diff: (1) dev branch not clean. Need to commit (or stash) locally
 ```
 
-Here's the message you get when your branch is fully
-committed but has not been pushed yet:
+***Here's the message you get when your branch is fully
+committed but has not been pushed yet:***
 
 ```
 [full (reverse) diff comes here]
@@ -75,8 +74,9 @@ committed but has not been pushed yet:
 4-way-diff: (2) dev branch: local != remote. Need to push
 ```
 
-Here's the message you get when your branch changes are committed,
-pushed, but not yet merged to the main branch on the remote server:
+***Here's the message you get when your branch changes are committed,
+pushed, but not yet merged to the main branch on the remote
+server:***
 
 ```
 [full (reverse) diff comes here]
@@ -84,9 +84,9 @@ pushed, but not yet merged to the main branch on the remote server:
 4-way-diff: (3) local dev != remote main. Need to remote-merge
 ```
 
-Here's the message you get when your branch changes are committed,
+***Here's the message you get when your branch changes are committed,
 pushed, and merged remotely, but your local main branch is now
-a step behind (because the merge was only done on the remote):
+a step behind (because the merge was only done on the remote):***
 
 ```
 [full diff comes here]
@@ -96,9 +96,13 @@ To fix:
         git checkout main && git pull && git checkout dev
 ```
 
-And finally, the message you get when everything is in-sync:
+***And finally, the message you get when everything is in-sync:***
 
 ```
+(1) dev branch is clean, cool
+(2) dev branch: local == remote, no need to push, cool
+(3) remote dev doesn't exist (already merged?)
+(4) local dev == local main, no need to pull in main, cool
 ```
 
 ## Caveats
