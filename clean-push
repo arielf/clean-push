@@ -320,6 +320,19 @@ function script-cmd() {
     fi
 }
 
+#
+# do-forced-push
+#   If this script name has 'push' in it, will also do a push
+#   The push is forced (-f) so no junk remains (and it has one diff)
+#
+function do-forced-push() {
+    case "$0" in (*push*)
+        script-cmd \
+            "Force-push to origin (add --no-verify to skip 'make test')" \
+            "git push --set-upstream origin -f '$FB' " ;;
+    esac
+}
+
 function initial-checks() {
 
     avoid-running-from-hook
@@ -372,10 +385,12 @@ script-cmd -p \
 #
 if empty-diff-vs "$FB"; then
     out "Good news: after-local merge+squash '$TB' is identical to '$FB'"
-    out "IOW: there's nothing to commit -> nothing more to do."
+    out "IOW: there's nothing to integrate from $MB -> nothing more to do."
     out "(Returning to '$FB' and removing '$TB')"
 
     clean-recover-from-temp
+    do-forced-push
+
     exit 0
 fi
 
@@ -421,17 +436,9 @@ script-cmd -p \
     "git branch -D '$TB'"
 
 #
-# If this script name has 'push' in it, will also do a push
-# The push is forced so no junk remains (and it has one diff)
+# Step 7:
 #
-case "$0" in (*push*)
-    #
-    # Step 7:
-    #
-    script-cmd \
-        "Force-push to origin (add --no-verify to skip 'make test')" \
-        "git push --set-upstream origin -f '$FB' " ;;
-esac
+do-forced-push
 
 # If we get here, it means all went well
 echo "$0: all done. Success!"
