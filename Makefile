@@ -41,6 +41,11 @@ dom drm:		#-- git diff vs remote (origin) master
 	#
 	git diff remotes/origin/$(MB)
 
+4 4wd 4d 4-w-d:		#-- 4-way diff (see README.md)
+	#
+	# 4-way diff
+	#
+	-./4-way-diff
 
 #
 # sync remotes
