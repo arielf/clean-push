@@ -257,7 +257,7 @@ function script-cmd() {
     # Must initialize OPTIND since it doesn't reset between
     # calls to 'script-cmd()'!
     OPTIND=1
-    while getopts 'phsec' opt; do
+    while getopts 'phseca' opt; do
         # Apply disable switches
         case "$opt" in
             (p) opt_p= ;;
