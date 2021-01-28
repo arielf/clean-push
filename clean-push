@@ -16,6 +16,9 @@
 #   - No prompting for steps that don't need human intervention
 #   - Ability to review and edit steps before execution
 #
+# pragma to protect from some of my githooks trying to execute this:
+#   pre-commit-exec-exempt
+#
 # Author: Ariel Faigon, 2021
 #
 function out() {

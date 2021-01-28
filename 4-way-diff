@@ -9,6 +9,11 @@
 # Give the user a good message about which is not in sync
 # and what needs to be done to make it so.
 #
+# pragma to protect from some of my githooks trying to execute this:
+#   pre-commit-exec-exempt
+#
+# Author: Ariel Faigon, 2021
+#
 function out() {
     echo "$0: $@"
 }
