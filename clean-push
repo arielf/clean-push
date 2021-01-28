@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Create a clean (rebased + squashed) pull-request while avoiding
 # git messy-history, rebase-loops, dup-commits & conflict hell.
