@@ -397,8 +397,10 @@ commit_status="$?"
 #
 if [[ "$commit_status" == 1 ]]; then
     if empty-diff-vs "$FB"; then
-        out "Good news: after-local merge+squash '$TB' is identical to '$FB'"
-        out "IOW: there's nothing to integrate from $MB -> nothing more to do."
+        out "--------------------- Good news: --------------------"
+        out "The above 'commit error' means 'empty diff'"
+        out "after local merge+squash '$TB' is identical to '$FB'"
+        out "IOW: nothing to incorporate from $MB && nothing more to do."
         out "(Returning to '$FB' and removing '$TB')"
 
         clean-recover-from-temp
