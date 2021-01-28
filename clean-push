@@ -18,8 +18,12 @@
 #
 # Author: Ariel Faigon, 2021
 #
+function out() {
+    echo "$0: $@"
+}
+
 function err() {
-    echo "$0: $@" >&2
+    out "$@" >&2
 }
 
 function current-branch() {
@@ -41,6 +45,23 @@ function ensure-delta-exists() {
         err "no difference between $MB and $FB: nothing to do!"
         exit 0 ;;
     esac
+}
+
+#
+# Safely/idempotently & quiety remove the temp branch
+#
+function delete-temp-branch() {
+    if local-branch-exists "$TB"; then
+        git branch -D "$TB" || true
+    fi
+}
+
+function empty-diff-vs() {
+    git diff --exit-code --quiet "$1"
+}
+
+function clean-recover-from-temp() {
+    git checkout "$FB" && delete-temp-branch
 }
 
 #
@@ -341,6 +362,22 @@ script-cmd -p \
     "Merge + Squash delta from '$FB' (on pristine $TB branch)
     (conflicts may be detected)" \
     "git merge --squash $FB"
+
+#
+# Short circuit a rare case of 'nothing added to commit' error
+# in the next commit attempt
+#
+# e.g. happens when delta by another developer is already included
+# in my changes.
+#
+if empty-diff-vs "$FB"; then
+    out "Good news: after-local merge+squash '$TB' is identical to '$FB'"
+    out "IOW: there's nothing to commit -> nothing more to do."
+    out "(Returning to '$FB' and removing '$TB')"
+
+    clean-recover-from-temp
+    exit 0
+fi
 
 #
 # Step 4: commit the clean (1-piece diff) change
