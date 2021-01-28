@@ -27,6 +27,10 @@ function get-main-branch-name() {
     done
 }
 
+function remote-branch-exists() {
+    git ls-remote --heads origin | grep -q "refs/heads/$1\$"
+}
+
 #
 # -- main
 #
@@ -46,9 +50,9 @@ else
 fi
 
 #
-# FIXME: not quite right when remote brach is merged + deleted
+# FIXME: not quite right when remote branch is merged + deleted
 #
-if git diff --exit-code $CB remotes/origin/$MB; then
+if git diff --exit-code $CB origin/$MB; then
     echo "(3) local $CB == remote $MB, no need to remote-merge"
 else
     die "(3) local $CB != remote $MB. Need to remote-merge"
