@@ -49,13 +49,14 @@ else
     die "(2) $CB branch: local != remote. Need to push"
 fi
 
-#
-# FIXME: not quite right when remote branch is merged + deleted
-#
-if git diff --exit-code $CB origin/$MB; then
-    echo "(3) local $CB == remote $MB, no need to remote-merge"
+if remote-branch-exists $CB; then
+    if git diff --exit-code $CB origin/$MB; then
+        echo "(3) local $CB == remote $MB, no need to remote-merge"
+    else
+        die "(3) local $CB != remote $MB. Need to remote-merge"
+    fi
 else
-    die "(3) local $CB != remote $MB. Need to remote-merge"
+    echo "(3) remote $CB doesn't exist (already merged?)"
 fi
 
 if git diff --exit-code $MB; then
