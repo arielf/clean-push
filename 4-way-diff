@@ -48,7 +48,7 @@ fi
 #
 # FIXME: not quite right when remote brach is merged + deleted
 #
-if git diff --exit-code $CB origin/$MB; then
+if git diff --exit-code $CB remotes/origin/$MB; then
     echo "(3) local $CB == remote $MB, no need to remote-merge"
 else
     die "(3) local $CB != remote $MB. Need to remote-merge"
