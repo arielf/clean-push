@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Create a clean (rebased + squashed) pull-request while avoiding
 # git messy-history, rebase-loops, dup-commits & conflict hell.
@@ -225,8 +225,13 @@ function script-cmd() {
     opt_p=1; opt_h=1; opt_s=1; opt_e=1; opt_c=1; opt_a=1
 
     # Set this to 0 Iff your bash is old (<4.2 ?)
-    # If so, you can't edit command in place, shame!
+    # If so, you can't edit commands in place, shame!
     I_OPT=1
+    if [[ "$BASH_VERSION" =~ ^[1-3]\. ]]; then
+        # Lose ability to edit commands
+        # But don't completely give up
+        I_OPT=0
+    fi
 
     # Must initialize OPTIND since it doesn't reset between
     # calls to 'script-cmd()'!
