@@ -80,6 +80,5 @@ if git diff --exit-code $MB; then
     echo "(4) local $CB == local $MB, no need to pull in $MB, cool"
 else
     err "(4) local $CB != local $MB. Need to pull in local $MB"
-    die "To fix:
-        git fetch origin $MB"
+    printf "To fix:\n\tgit checkout $MB && git pull && git checkout $CB\n"
 fi
