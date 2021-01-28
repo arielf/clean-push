@@ -42,6 +42,64 @@ git flow to produce safe, neat, rebased + sqashed PRs
 - Protected from being called from a git hook (a nested call which may cause damage)
 - Ability to pause & allow you to edit intermediate `git` steps before executing them. A common use-case for me is to be able to add `--no-verify` to the end of a `git commit` or `git push` sub-command in order to skip some long duration hooks.
 
+## 4-way-diff
+
+`4-way-diff` is a handy script that provides a quick, non-destructive,
+(read-only) view of the 4-way state for full situational awareness.
+
+It tells you which of the 4 copies is not in-sync by performing
+the full circle of comparisons:
+
+  - local dev vs its 'git index' (is current branch 'clean'?)
+  - local dev vs remote/pushed dev
+  - local dev vs remote master/main
+  - remote dev vs local copy of main (the 'tracking' branch for main)
+
+Try it and it can help you to quickly diagnose what may still
+not be in-sync.
+
+Here's for example the message you get when something isn't committed yet:
+
+```
+[full diff comes here]
+
+4-way-diff: (1) dev branch not clean. Need to commit (or stash) locally
+```
+
+Here's the message you get when your branch is fully
+committed but has not been pushed yet:
+
+```
+[full (reverse) diff comes here]
+
+4-way-diff: (2) dev branch: local != remote. Need to push
+```
+
+Here's the message you get when your branch changes are committed,
+pushed, but not yet merged to the main branch on the remote server:
+
+```
+[full (reverse) diff comes here]
+
+4-way-diff: (3) local dev != remote main. Need to remote-merge
+```
+
+Here's the message you get when your branch changes are committed,
+pushed, and merged remotely, but your local main branch is now
+a step behind (because the merge was only done on the remote):
+
+```
+[full (reverse) diff comes here]
+
+....
+```
+
+
+And finally, the message you get when everything is in-sync:
+
+```
+```
+
 ## Caveats
 
 ### `clean-push` is intended for flows:
