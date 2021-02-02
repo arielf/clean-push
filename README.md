@@ -2,45 +2,6 @@
 
 Automated git flow to produce safe, neat, rebased + sqashed PRs
 
-### First, terminology
-
-In the text below, there's repeated reference to two distinct branches.
-
-The 1st is the `main` branch you have branched from to do your development.
-This branch can be referred to by several names, among them:
-
-  - *master*
-  - *main*
-  - *parent branch* (although git doesn't really support parent/child relationships between branches, as branch names are just `refs`, i.e aliases for commit-ids)
-  - *CICD* branch (if we auto-deploy from it)
-  - The source of truth
-  - When this branch is used to release from, it may be called the *release* branch
-
-Similarly, different people may refer to the ephemeral branch they're developing on, as any of:
-
-  - *dev* or development branch
-  - *topic* branch
-  - *bug-fix* branch
-  - *feature* branch
-
-As far as `clean-push` is concerned, there are only two branches.
-In the below they are referred to as:
-
-  - `main` or `master`
-  - `dev`
-
-regardless of what they are actually called.
-
-`clean-push` queries the current branch (from which it was called) in runtime for the `dev` branch actual name.
-
-Figure out the *main* branch is harder.
-`clean-push` tries to check the following for existence, in order:
-
-  - "$1" (first, arg, if passed on the command line)
-  - `master`
-  - `main`
-
-Better heuristics for figuring out the later are welcome (please open a github issue).
 
 ### Have you ever been frustrated with `git` because:
 
@@ -77,6 +38,46 @@ Better heuristics for figuring out the later are welcome (please open a github i
 - Works both on Linux and Mac OS-X
 - Protected from being called from a git hook (a nested call which may cause damage)
 - Ability to pause & allow you to edit intermediate `git` steps before executing them. A common use-case for me is to be able to add `--no-verify` to the end of a `git commit` or `git push` sub-command in order to skip some long duration hooks.
+
+### Crucial terminology
+
+In this text, there are repeated references to two distinct branches.
+
+The 1st is the `main` branch you have branched from to do your development.
+This branch can be referred to by several names, among them:
+
+  - *master*
+  - *main*
+  - *parent branch* (although git doesn't really support parent/child relationships between branches, as branch names are just `refs`, i.e aliases for commit-ids)
+  - *CICD* branch (if we auto-deploy from it)
+  - The source of truth
+  - When this branch is used to release from, it may be called the *release* branch
+
+Similarly, different people may refer to the ephemeral branch they're developing on, as any of:
+
+  - *dev* or development branch
+  - *topic* branch
+  - *bug-fix* branch
+  - *feature* branch
+
+As far as `clean-push` is concerned, there are only two branches.
+In this text, they are referred to as:
+
+  - `main` or `master`
+  - `dev`
+
+regardless of what they are actually called.
+
+`clean-push` queries the current branch (from which it was called) in runtime for the `dev` branch actual name.
+
+Figuring-out the *main* branch actual name is harder.
+`clean-push` tries to check the following for existence, in order:
+
+  - "$1" (first, arg, if passed on the command line)
+  - `master`
+  - `main`
+
+Better heuristics for figuring out the later are welcome (please open a github issue if you know a reliable solution).
 
 ## 4-way-diff
 
