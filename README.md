@@ -1,14 +1,50 @@
 # clean-push
 
-git flow to produce safe, neat, rebased + sqashed PRs
+Automated git flow to produce safe, neat, rebased + sqashed PRs
 
-*(Note: in the below, I use `master` as the generic name for the branch you have branched from.
- Some call it "the parent branch" although git doesn't really support parent/child relationships
- between branches, branch names are just `refs`, i.e aliases for commit-ids)*
+### First, terminology
+
+In the text below, there's repeated reference to two distinct branches.
+
+The 1st is the `main` branch you have branched from to do your development.
+This branch can be referred to by several names, among them:
+
+  - *master*
+  - *main*
+  - *parent branch* (although git doesn't really support parent/child relationships between branches, as branch names are just `refs`, i.e aliases for commit-ids)
+  - *CICD* branch (if we auto-deploy from it)
+  - The source of truth
+  - When this branch is used to release from, it may be called the *release* branch
+
+Similarly, different people may refer to the ephemeral branch they're developing on, as any of:
+
+  - *dev* or development branch
+  - *topic* branch
+  - *bug-fix* branch
+  - *feature* branch
+
+As far as `clean-push` is concerned, there are only two branches.
+In the below they are referred to as:
+
+  - `main` or `master`
+  - `dev`
+
+regardless of what they are actually called.
+
+`clean-push` queries the current branch (from which it was called) in runtime for the `dev` branch actual name.
+
+Figure out the *main* branch is harder.
+`clean-push` tries to check the following for existence, in order:
+
+  - "$1" (first, arg, if passed on the command line)
+  - `master`
+  - `main`
+
+Better heuristics for figuring out the later are welcome (please open a github issue).
 
 ### Have you ever been frustrated with `git` because:
 
-- Your long-lived branch commit-history has become too messy when the time has come to publish your changes?
+- Your long-lived `dev` branch commit-history has become too messy when the time has come to publish your changes?
 - You had duplicate or partly overlapping commits because of history-changing squashes & rebases?
 - A commit has been reverted, but instead of having an empty delta you had both commit + reverted changes?
 - When you tried to rebase, you got into "rebase hell" (`continue, skip, abort`) loop, which seemed to never end?
@@ -52,8 +88,8 @@ the full circle of comparisons:
 
   - local dev vs its 'git index' (is current branch 'clean'?)
   - local dev vs remote/pushed dev
-  - local dev vs remote master/main
-  - remote dev vs local copy of main (the 'tracking' branch for main)
+  - local dev vs remote master
+  - remote dev vs local copy of master (the 'tracking' branch for master)
 
 Try it and it can help you to quickly diagnose what may still not be in-sync.
 
