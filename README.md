@@ -177,7 +177,7 @@ It was developed and tested using:
 
 Verified on Linux (Ubuntu 18.04) & Mac OS-X (10.15, Catalina).
 
-## Licence
+## License
 
 Written-by: Ariel Faigon, 2021
 
