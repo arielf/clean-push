@@ -1,6 +1,8 @@
+[//]: # (vim: spell)
+
 # clean-push
 
-Automated git flow to produce safe, neat, rebased + sqashed PRs
+Automated git flow to produce safe, neat (rebased + squashed) pull-requests.
 
 
 ### Have you ever been frustrated with `git` because:
@@ -66,7 +68,7 @@ In this text, they are referred to as:
   - `main` or `master`
   - `dev`
 
-regardless of what they are actually called.
+Regardless of what they are actually called.
 
 `clean-push` queries the current branch (from which it was called) in runtime for the `dev` branch actual name.
 

@@ -1,3 +1,5 @@
+[//]: # (vim: spell)
+
 # Frequently asked questions
 
 The following are only related to `clean-push`.
@@ -48,7 +50,7 @@ You can use the following:
     # Assume we're here, on our private development branch
     git checkout dev
 
-#### Uncomitted changes
+#### Uncommitted changes
 
     #
     # local difference between what's already commited and what's not
@@ -70,7 +72,7 @@ You can use the following:
     #
     git diff remotes/origin/main
 
-or:
+Or:
 
     git diff origin/main            # same ('remotes' is implied)
 
@@ -79,7 +81,7 @@ you need to change branches to `main` first because when your
 current branch is `dev` and you try to run `git diff origin`,
 'dev' is implied.
 
-#### Merged main on remote but local main is now unsynced
+#### Merged main on remote but local main is out of sync
 
     #
     # Close the full loop from remote to local:
@@ -169,4 +171,3 @@ the `pull` to (current branch, and merge with HEAD implied).
 
     # Implies merging the (local) copy of branchname into (local) current branch
     git merge branchname
-
