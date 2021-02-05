@@ -39,12 +39,13 @@ function local-branch-exists() {
 
 function get-main-branch-name() {
     local arg="$1"
-    for branch in "$arg" 'master' 'main'; do
+    for branch in "$arg" 'dev' 'staging' 'main' 'master'; do
         if [[ -z "$branch" ]]; then
             continue
         fi
         if local-branch-exists "$branch"; then
             echo "$branch"
+            return
         fi
     done
 }
