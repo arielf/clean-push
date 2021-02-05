@@ -21,8 +21,10 @@
 #
 # Author: Ariel Faigon, 2021
 #
+PROG="$(basename "$0")"
+
 function out() {
-    echo "$0: $@"
+    echo "$PROG: $@"
 }
 
 function err() {
@@ -131,19 +133,22 @@ function has-parent-process-named() {
 }
 
 function local-branch-exists() {
-    local branchname="$1"
-    git show-ref --verify --quiet "refs/heads/$branchname"
-    # $? == 0 means local branch <branchname> exists.
+    local branch="$1"
+    git show-ref --verify --quiet "refs/heads/$branch"
+    # $? == 0 means local branch <branch> exists.
 }
 
 function get-main-branch-name() {
     local arg="$1"
-    for branch in "$arg" 'master' 'main'; do
+    for branch in "$arg" 'dev' 'staging' 'main' 'master'; do
         if [[ -z "$branch" ]]; then
             continue
         fi
+        err "get-main-branch-name: trying branch: $branch ..."
         if local-branch-exists "$branch"; then
+            # err "get-main-branch-name: local-branch $branch FOUND"
             echo "$branch"
+            return
         fi
     done
 }

@@ -1,3 +1,4 @@
+
 [//]: # (vim: spell)
 
 # Frequently asked questions
