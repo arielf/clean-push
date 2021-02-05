@@ -1,3 +1,4 @@
+
 [//]: # (vim: spell)
 
 # clean-push
@@ -7,7 +8,7 @@ Automated git flow to produce safe, neat (rebased + squashed) pull-requests.
 
 ### Have you ever been frustrated with `git` because:
 
-- Your long-lived `dev` branch commit-history has become too messy when the time has come to publish your changes?
+- Your long-lived `work` branch commit-history has become too messy when the time has come to publish your changes?
 - You had duplicate or partly overlapping commits because of history-changing squashes & rebases?
 - A commit has been reverted, but instead of having an empty delta you had both commit + reverted changes?
 - When you tried to rebase, you got into "rebase hell" (`continue, skip, abort`) loop, which seemed to never end?
@@ -15,6 +16,7 @@ Automated git flow to produce safe, neat (rebased + squashed) pull-requests.
 - A push after a merge unexpectedly included someone-else's changes due to a messy merge with `master` + a 3-way diff against an already existing PR?
 - You wanted to reuse an existing branch for additional work, but there was too much legacy in its commits so you were forced to start a new one and replay all your changes again?
 - You resorted to (`git diff` + `git apply`) or (`stash` + `pop`) or (a loop of `git cherry-pick`s from prior work) but found the multi-step process too complex/involved and error-prone?
+- You created a pull-request, and noticed a small error, now you want to redo the PR with some small fix, but hesitate because it would mean too much work all over again? (think `git commit --amend` but for pushes)
 
 ### If you answered "yes" to any of the above?
 
@@ -22,15 +24,15 @@ Automated git flow to produce safe, neat (rebased + squashed) pull-requests.
 
 `clean-push` implements the following:
 
-- A full sync with the `master` branch before starting a push leading to a pull request
+- A full sync with the `main` branch before starting a push leading to a pull request
 - Simple conflict detection, like merge does
 - Consolidated/simple conflict resolution (unlike with `git rebase`)
 - The pull-request is clean:
-   - It has only one delta (diff) vs `master`
-   - It is rebased on top of the latest HEAD of `master`
+   - It has only one delta (diff) vs `main`
+   - It is rebased on top of the latest HEAD of `main`
    - It doesn't contain unwanted merge commits
 - For safety: most risky `git` operations which might mess-up your work, are done on a temporary/throwaway branch.
-- Your feature branch is atomically modified once (with one `git reset`) after all issues have been resolved and the single delta vs `master` looks good.
+- Your feature branch is atomically modified once (with one `git reset`) after all issues have been resolved and the single delta vs `main` looks good.
 - You get a chance to edit your pull-request message in your favorite editor and make it look even better.
 - You can re-edit all the messages in a long list of commits without
   the complexities introduced by the fix-up syntax of `git rebase -i`
@@ -52,12 +54,14 @@ This branch can be referred to by several names, among them:
   - *main*
   - *parent branch* (although git doesn't really support parent/child relationships between branches, as branch names are just `refs`, i.e aliases for commit-ids)
   - *CICD* branch (if we auto-deploy from it)
+  - *dev* or the 'development branch'
   - The source of truth
   - When this branch is used to release from, it may be called the *release* branch
+  - On *github.com* in settings/branches they call this the "default branch"
 
 Similarly, different people may refer to the ephemeral branch they're developing on, as any of:
 
-  - *dev* or development branch
+  - *work* branch
   - *topic* branch
   - *bug-fix* branch
   - *feature* branch
@@ -66,20 +70,22 @@ As far as `clean-push` is concerned, there are only two branches.
 In this text, they are referred to as:
 
   - `main` or `master`
-  - `dev`
+  - `work` branch
 
 Regardless of what they are actually called.
 
-`clean-push` queries the current branch (from which it was called) in runtime for the `dev` branch actual name.
+`clean-push` queries the current branch (from which it was called) in runtime for the `work` branch actual name.
 
 Figuring-out the *main* branch actual name is harder.
 `clean-push` tries to check the following for existence, in order:
 
   - "$1" (first, arg, if passed on the command line)
-  - `master`
+  - `dev`
+  - `staging`
   - `main`
+  - `master`
 
-Better heuristics for figuring out the later are welcome (please open a github issue if you know a reliable solution).
+Better heuristics for figuring out the later are welcome (please open a github issue if you know a more reliable and elegant solution).
 
 ## 4-way-diff
 
@@ -89,10 +95,10 @@ Better heuristics for figuring out the later are welcome (please open a github i
 It tells you which of the 4 copies is not in-sync by performing
 the full circle of comparisons:
 
-  - local dev vs its 'git index' (is current branch 'clean'?)
-  - local dev vs remote/pushed dev
-  - local dev vs remote master
-  - remote dev vs local copy of master (the 'tracking' branch for master)
+  - local work branch vs its 'git index' (is current branch 'clean'?)
+  - local work branch vs remote/pushed work branch
+  - local work branch vs remote master
+  - remote work branch vs local copy of master (the 'tracking' branch for master)
 
 Try it and it can help you to quickly diagnose what may still not be in-sync.
 
@@ -101,7 +107,7 @@ Try it and it can help you to quickly diagnose what may still not be in-sync.
 ```
 [full diff comes here]
 
-4-way-diff: (1) dev branch not clean. Need to commit (or stash) locally
+4-way-diff: (1) work branch not clean. Need to commit (or stash) locally
 ```
 
 ***Here's the message you get when your branch is fully
@@ -110,7 +116,7 @@ committed but has not been pushed yet:***
 ```
 [full (reverse) diff comes here]
 
-4-way-diff: (2) dev branch: local != remote. Need to push
+4-way-diff: (2) work branch: local != remote. Need to push
 ```
 
 ***Here's the message you get when your branch changes are committed,
@@ -120,7 +126,7 @@ server:***
 ```
 [full (reverse) diff comes here]
 
-4-way-diff: (3) local dev != remote main. Need to remote-merge
+4-way-diff: (3) local work != remote main. Need to remote-merge
 ```
 
 ***Here's the message you get when your branch changes are committed,
@@ -130,18 +136,18 @@ a step behind (because the merge was only done on the remote):***
 ```
 [full diff comes here]
 
-4-way-diff: (4) local dev != local main. Need to pull in local main
+4-way-diff: (4) local work != local main. Need to pull in local main
 To fix:
-        git checkout main && git pull && git checkout dev
+        git checkout main && git pull && git checkout work
 ```
 
 ***And finally, the message you get when everything is in-sync:***
 
 ```
-(1) dev branch is clean, cool
-(2) dev branch: local == remote, no need to push, cool
-(3) remote dev doesn't exist (already merged?)
-(4) local dev == local main, no need to pull in main, cool
+(1) work branch is clean, cool
+(2) work branch: local == remote, no need to push, cool
+(3) remote work doesn't exist (already merged?)
+(4) local work == local main, no need to pull in main, cool
 ```
 
 ## Caveats

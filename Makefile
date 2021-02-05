@@ -10,20 +10,20 @@
 #
 #	-- Last letter:
 #	'm' refers to main/master branch
-#	'f' refers to feature (dev) branch
+#	'f' refers to feature (work) branch
 #
 # Examples:
-# 	dm == dlm == diff local master
+# 	dm == dlm == diff local main
 # 	drf == dof == diff remote (origin) feature branch
 #
 MB = main
-FB = dev
+FB = work
 
 all: 3way-sync		#-- top level make target
 
 .PHONY: help dm dm dof drf dom drm help s3 3way-sync
 
-dm dlm:			#-- git diff vs local master
+dm dlm:			#-- git diff vs local main
 	#
 	# check that our $(FB) branch is identical to $(MB)
 	#
@@ -35,7 +35,7 @@ dof drf:		#-- git diff vs remote (origin) feature branch
 	#
 	git diff remotes/origin/$(FB)
 
-dom drm:		#-- git diff vs remote (origin) master
+dom drm:		#-- git diff vs remote (origin) main
 	#
 	# check that our $(FB) branch is identical to the _remote_ $(MB)
 	#
@@ -53,7 +53,7 @@ dom drm:		#-- git diff vs remote (origin) master
 sof srf:		#-- push to remote (origin) feaure branch
 	git push -f
 
-slm sm:			#-- pull in local master
+slm sm:			#-- pull in local main
 	#
 	# Get latest into local $(MB)
 	#
