@@ -336,7 +336,7 @@ function script-cmd() {
 function do-forced-push() {
     case "$0" in (*push*)
         script-cmd \
-            "Force-push to origin (add --no-verify to skip 'make test')" \
+            "Force-push to origin (add --no-verify to skip 'pre-push' hooks such as 'make test')" \
             "git push --set-upstream origin -f '$FB' " ;;
     esac
 }

@@ -162,11 +162,13 @@ To fix:
 
 ### If your flow:
 
-- Encourages multiple diverging separate development tracks
+- Encourages multiple long-lived diverging separate development tracks
 - Rarely merges
+- Has multiple forks like production vs "next gen". Extreme case: what you develop today will be seen by customers only in 3 years, if at all.
 - Doesn't use continuous integration and deployment (CICD)
 
-Then `clean-push` is probably not for you.
+Then `clean-push` may be useful for work on one fork, but may not be
+useful beyond it.
 
 ## Big credit:
 
