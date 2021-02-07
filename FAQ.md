@@ -19,7 +19,47 @@ hard to full understand what problem `clean-push` actually solves.
 
 Because of duplicate-commits and lack of squashing similar, opposite, or overlapping changes, `rebase` often leads to what seems like a loop of applying the same changes over and over again.
 
-### When I use rebase/squash I sometimes see other developer's changes in my diffs. Why?
+### How does clean-push figure out the "main" branch.
+
+`clean-push` has no idea what your main branch is, so it uses a
+heuristic. Look for the function called `get-main-branch-name`
+in the source. It does a loop like this:
+
+```
+    arg="$1"
+    for branch in "$arg" 'dev' 'staging' 'main' 'master'; do
+```
+
+On github, there's a concept of "default branch" which you can set
+via their web UI: `settings -> branches -> default branch`
+This determines the branch against which pull-requests are made.
+
+Similarly, `clean-push` uses what it calls 'main branch' to
+determine against what base branch to calculate the delta.
+
+Feel free to change the source line above to work best for you.
+If you change that line, you should also change the similar one
+in `4-way-diff`.
+
+### Does `clean-push` force a single-branch development?
+
+Not at all. `clean-push` only purpose is to generate clean,
+linear PRs on top of a base-branch HEAD while avoiding `rebase`.
+
+In my current company we use 3 branches:
+
+    dev -> staging -> prod
+
+and we move them forward at a weekly cadence, for stability reasons.
+
+I run `clean-push` when pushing to `dev`. We have a separate
+github hook running via drone that does the weekly promotion
+from branch to branch triggered by the further merge and
+we have a package build + deployment triggered by incrementing
+a [semver style](https://semver.org) tag.
+
+
+### When I use rebase/squash (not `clean-push`) I see other developer's changes in my diffs. Why?
 
 This is due to the misunderstanding of diff (deltas).
 
@@ -131,6 +171,14 @@ changes, you also need an additional push to remote:
 
 ### When is `git` implicit vs explicit?
 
+This is one of the most confusing aspects of `git`.
+
+In many operations which involve two copies of the repo,
+most commonly two branches, only one of them is given, and
+the other is implied.
+
+In more detail:
+
 My repository is a copy of the remote repository.
 
 This repository on my local machine has the following `.git/config`
@@ -153,7 +201,7 @@ This repository on my local machine has the following `.git/config`
 ```
 
 At its core this `config` file gives symbolic names to different
-copies of the current repository.
+instances (copies) of the current repository.
 
 - The name *"origin"* refers to the remote `github` host and URL.
 - The name *"main"* refers to the main branch, which has a copy on the
@@ -161,11 +209,11 @@ copies of the current repository.
   ***local*** copy rather than the remote copy.
 
 In many operations which conceptually require two arguments,
-git supports an implied default argument which is your current
+git supports an ***implied*** default argument which is your current
 branch (in almost all cases the HEAD on the current branch).
 So when you do a `pull` for example, you only need to specify
-where are you pulling from and not the branch you're applying
-the `pull` to (current branch, and merge with HEAD implied).
+where are you pulling *from* and not the branch you're applying
+the `pull` *to* (current branch, and merge with HEAD implied).
 
     # Implies origin (most commonly: a remote copy, with the same branchname)
     git push
