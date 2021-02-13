@@ -27,8 +27,32 @@ function die() {
     exit 1
 }
 
+#
+# $TB branch is throwaway, temporary to do the sync/merge work
+# in a way that is totally non-destructive to any other branches
+# We remove it after the merge with $MB is successful.
+# We can call it whatever we want. It should never exist.
+#
+TB='temp-branch'
+
 function current-branch() {
     git rev-parse --abbrev-ref HEAD
+}
+
+function parent-branch() {
+    local CB="$(current-branch)"
+    git reflog |
+        grep -Eo ": moving from .* to $CB\$" |
+            perl -ne '
+                if (/^: moving from (.*) to (.*)$/) {
+                    my ($from, $to) = ($1, $2);
+                    # print STDERR "perl: matched from=$from to=$to\n";
+                    if ($from ne "'"$TB"'") {
+                        print $from, "\n";
+                        exit 0;
+                    }
+                }
+            '
 }
 
 function local-branch-exists() {
@@ -39,7 +63,9 @@ function local-branch-exists() {
 
 function get-main-branch-name() {
     local arg="$1"
-    for branch in "$arg" 'dev' 'staging' 'main' 'master'; do
+    local pb="$(parent-branch)"
+
+    for branch in "$arg" "$pb" 'dev' 'staging' 'main' 'master'; do
         if [[ -z "$branch" ]]; then
             continue
         fi
