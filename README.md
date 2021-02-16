@@ -95,7 +95,7 @@ Better heuristics for figuring out the later are welcome (please open a github i
 It tells you which of the 4 copies is not in-sync by performing
 the full circle of comparisons:
 
-  - local work branch vs its 'git index' (is current branch 'clean'?)
+  - local work branch vs its 'git index' (is current branch ***fully committed*** a.k.a: ***clean***?)
   - local work branch vs remote/pushed work branch
   - local work branch vs remote master
   - remote work branch vs local copy of master (the 'tracking' branch for master)
