@@ -39,7 +39,7 @@ function current-branch() {
     git rev-parse --abbrev-ref HEAD
 }
 
-function parent-branch() {
+function reflog-last-checkout() {
     local CB="$(current-branch)"
     git reflog |
         grep -Eo ": moving from .* to $CB\$" |
@@ -63,9 +63,9 @@ function local-branch-exists() {
 
 function get-main-branch-name() {
     local arg="$1"
-    local pb="$(parent-branch)"
+    local lc="$(reflog-last-checkout)"
 
-    for branch in "$arg" "$pb" 'dev' 'staging' 'main' 'master'; do
+    for branch in "$arg" "$pb" 'dev' 'staging' 'main' 'master' "$lc"; do
         if [[ -z "$branch" ]]; then
             continue
         fi
