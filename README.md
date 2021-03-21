@@ -185,7 +185,7 @@ It was developed and tested using:
 - bash 4.4.x
 - git 2.17
 
-Verified on Linux (Ubuntu 18.04) & Mac OS-X (10.15, Catalina).
+Verified on Linux (Ubuntu 18.04, and 20.04) & Mac OS-X (10.15, Catalina).
 
 ## License
 
