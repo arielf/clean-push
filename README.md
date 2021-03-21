@@ -182,8 +182,8 @@ Before discovering that page, I tried several unsatisfactory solutions to the pr
 
 It was developed and tested using:
 
-- bash 4.4.x
-- git 2.17
+- bash: 4.4.20, 5.0.17
+- git: 2.17, 2.25.1
 
 Verified on Linux (Ubuntu 18.04, and 20.04) & Mac OS-X (10.15, Catalina).
 
