@@ -23,7 +23,7 @@
 #
 PROG="$(basename "$0")"
 
-UPSTREAM='origin'
+UPSTREAM=${UPSTREAM:-origin}
 
 #
 # $TB branch is throwaway, temporary to do the sync/merge work
