@@ -23,13 +23,7 @@
 #
 PROG="$(basename "$0")"
 
-function out() {
-    echo "$PROG: $@"
-}
-
-function err() {
-    out "$@" >&2
-}
+UPSTREAM='origin'
 
 #
 # $TB branch is throwaway, temporary to do the sync/merge work
@@ -38,6 +32,14 @@ function err() {
 # We can call it whatever we want. It should never exist.
 #
 TB='temp-branch'
+
+function out() {
+    echo "$PROG: $@"
+}
+
+function err() {
+    out "$@" >&2
+}
 
 function current-branch() {
     git rev-parse --abbrev-ref HEAD
@@ -99,7 +101,7 @@ function clean-recover-from-temp() {
 #
 function pull-main-branch-into() {
     local branch="$1"
-    git checkout "$branch" && git pull --commit --no-edit origin "$MB"
+    git checkout "$branch" && git pull --commit --no-edit "UPSTREAM" "$MB"
 }
 
 #
@@ -355,8 +357,8 @@ function script-cmd() {
 function do-forced-push() {
     case "$0" in (*push*)
         script-cmd \
-            "Force-push to origin (add --no-verify to skip 'pre-push' hooks such as 'make test')" \
-            "git push --set-upstream origin -f '$FB' " ;;
+            "Force-push to $UPSTREAM (add --no-verify to skip 'pre-push' hooks such as 'make test')" \
+            "git push --set-upstream '$UPSTREAM' -f '$FB' " ;;
     esac
 }
 
@@ -380,7 +382,7 @@ initial-checks "$@"
 
 #
 # Step 1:
-#   - make sure we are 100% sync'ed with origin master
+#   - make sure we are 100% sync'ed with $UPSTREAM master
 #   - go back to our branch
 #
 script-cmd -p \
