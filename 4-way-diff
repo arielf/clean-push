@@ -14,6 +14,17 @@
 #
 # Author: Ariel Faigon, 2021
 #
+
+UPSTREAM=${UPSTREAM:-origin}
+
+#
+# $TB branch is throwaway, temporary to do the sync/merge work
+# in a way that is totally non-destructive to any other branches
+# We remove it after the merge with $MB is successful.
+# We can call it whatever we want. It should never exist.
+#
+TB='temp-branch'
+
 function out() {
     echo "$0: $*"
 }
@@ -26,14 +37,6 @@ function die() {
     err "$@"
     exit 1
 }
-
-#
-# $TB branch is throwaway, temporary to do the sync/merge work
-# in a way that is totally non-destructive to any other branches
-# We remove it after the merge with $MB is successful.
-# We can call it whatever we want. It should never exist.
-#
-TB='temp-branch'
 
 function current-branch() {
     git rev-parse --abbrev-ref HEAD
@@ -80,7 +83,7 @@ function get-main-branch-name() {
 }
 
 function remote-branch-exists() {
-    git ls-remote --heads origin | grep -q "refs/heads/$1\$"
+    git ls-remote --heads "$UPSTREAM" | grep -q "refs/heads/$1\$"
 }
 
 #
@@ -95,14 +98,14 @@ else
     die "(1) $CB branch not clean. Need to commit (or stash) locally"
 fi
 
-if git diff --exit-code "origin/$CB" "$CB"; then
+if git diff --exit-code "$UPSTREAM/$CB" "$CB"; then
     echo "(2) $CB branch: local == remote, no need to push, cool"
 else
     die "(2) $CB branch: local != remote. Need to push"
 fi
 
 if remote-branch-exists "$CB"; then
-    if git diff --exit-code "origin/$MB" "$CB"; then
+    if git diff --exit-code "$UPSTREAM/$MB" "$CB"; then
         echo "(3) local $CB == remote $MB, no need to remote-merge"
     else
         die "(3) local $CB != remote $MB. Need to remote-merge"
