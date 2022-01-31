@@ -15,7 +15,7 @@
 # Author: Ariel Faigon, 2021
 #
 function out() {
-    echo "$0: $@"
+    echo "$0: $*"
 }
 
 function err() {
@@ -40,7 +40,8 @@ function current-branch() {
 }
 
 function reflog-last-checkout() {
-    local CB="$(current-branch)"
+    local CB
+    CB="$(current-branch)"
     git reflog |
         grep -Eo ": moving from .* to $CB\$" |
             perl -ne '
@@ -62,10 +63,12 @@ function local-branch-exists() {
 }
 
 function get-main-branch-name() {
-    local arg="$1"
-    local lc="$(reflog-last-checkout)"
+    local pb="$1"       # preferred branch (optional)
 
-    for branch in "$arg" "$pb" 'dev' 'staging' 'main' 'master' "$lc"; do
+    local lc
+    lc="$(reflog-last-checkout)"
+
+    for branch in "$pb" 'dev' 'staging' 'main' 'master' "$lc"; do
         if [[ -z "$branch" ]]; then
             continue
         fi
@@ -84,7 +87,7 @@ function remote-branch-exists() {
 # -- main
 #
 CB="$(current-branch)"
-MB="$(get-main-branch-name)"
+MB="$(get-main-branch-name "$1")"
 
 if git diff --exit-code; then
     echo "(1) $CB branch is clean, cool"
@@ -92,14 +95,14 @@ else
     die "(1) $CB branch not clean. Need to commit (or stash) locally"
 fi
 
-if git diff --exit-code $CB origin/$CB; then
+if git diff --exit-code "origin/$CB" "$CB"; then
     echo "(2) $CB branch: local == remote, no need to push, cool"
 else
     die "(2) $CB branch: local != remote. Need to push"
 fi
 
-if remote-branch-exists $CB; then
-    if git diff --exit-code $CB origin/$MB; then
+if remote-branch-exists "$CB"; then
+    if git diff --exit-code "origin/$MB" "$CB"; then
         echo "(3) local $CB == remote $MB, no need to remote-merge"
     else
         die "(3) local $CB != remote $MB. Need to remote-merge"
@@ -108,9 +111,9 @@ else
     echo "(3) remote $CB doesn't exist (already merged?)"
 fi
 
-if git diff --exit-code $MB; then
+if git diff --exit-code "$MB"; then
     echo "(4) local $CB == local $MB, no need to pull in $MB, cool"
 else
     err "(4) local $CB != local $MB. Need to pull in local $MB"
-    printf "To fix:\n\tgit checkout $MB && git pull && git checkout $CB\n"
+    printf "To fix:\n\tgit checkout %s && git pull && git checkout %s\n" "$MB" "$CB"
 fi
