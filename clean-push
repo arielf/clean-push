@@ -101,7 +101,7 @@ function clean-recover-from-temp() {
 #
 function pull-main-branch-into() {
     local branch="$1"
-    git checkout "$branch" && git pull --commit --no-edit "UPSTREAM" "$MB"
+    git checkout "$branch" && git pull --commit --no-edit "$UPSTREAM" "$MB"
 }
 
 #
