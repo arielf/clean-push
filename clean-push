@@ -34,7 +34,7 @@ UPSTREAM=${UPSTREAM:-origin}
 TB='temp-branch'
 
 function out() {
-    echo "$PROG: $@"
+    echo "$PROG: $*"
 }
 
 function err() {
@@ -46,7 +46,8 @@ function current-branch() {
 }
 
 function reflog-last-checkout() {
-    local CB="$(current-branch)"
+    local CB
+    CB="$(current-branch)"
     git reflog |
         grep -Eo ": moving from .* to $CB\$" |
             perl -ne '
@@ -66,7 +67,7 @@ function ensure-feature-branch-is-clean() {
         err "'$FB' is not clean (please commit or stash changes)"
         exit 1
     }
-    printf "$0: cool: repo is clean (fully committed)\n"
+    printf "%s: cool: repo is clean (fully committed)\n" "$0"
 }
 
 function ensure-delta-exists() {
@@ -115,6 +116,7 @@ function parent_pid_of() {
     #       cut -d' ' -f4 "/proc/$pid/stat"
     # Universal (GNU & BSD) ps call printing only PPID, sans header
     # This should works on both Linux and OS-X
+    # shellcheck disable=SC2009
     ps -o ppid= -p "$pid" |grep -Eo '[0-9]+'
 }
 
@@ -139,9 +141,12 @@ function has-parent-process-named() {
     local pname="$1"
     local pid="$$"
 
+    local parent_pid
+    local parent_cmd
+
     while true; do
-        local parent_pid="$(parent_pid_of "$pid")"
-        local parent_cmd="$(cmd_of "$parent_pid")"
+        parent_pid="$(parent_pid_of "$pid")"
+        parent_cmd="$(cmd_of "$parent_pid")"
 
         # echo "pid=$pid  parent_pid=$parent_pid parent_cmd=$parent_cmd"
 
@@ -166,7 +171,8 @@ function local-branch-exists() {
 
 function get-main-branch-name() {
     local arg="$1"
-    local lc="$(reflog-last-checkout)"
+    local lc
+    lc="$(reflog-last-checkout)"
 
     for branch in "$arg" 'dev' 'staging' 'main' 'master' "$lc"; do
         if [[ -z "$branch" ]]; then
@@ -286,6 +292,7 @@ function script-cmd() {
     # Must initialize OPTIND since it doesn't reset between
     # calls to 'script-cmd()'!
     OPTIND=1
+    # shellcheck disable=SC2220
     while getopts 'phseca' opt; do
         # Apply disable switches
         case "$opt" in
@@ -304,10 +311,10 @@ function script-cmd() {
     # echo "script-cmd: args: |$@| header=|$header| cmd=|$cmd| OPTIND=$OPTIND"
 
     case "$opt_s" in (1)
-        step=$(($step+1)) ;;
+        step=$((step+1)) ;;
     esac
 
-    if [[ ! -z "$opt_h" ]]; then
+    if [[ -n "$opt_h" ]]; then
         echo "-----------------------------------------------------------------"
         echo "($step) $header"
     fi
@@ -316,14 +323,14 @@ function script-cmd() {
         # read the command-line in, but allow real-time edits
         # via GNU readline
         if [[ "$I_OPT" == 1 ]]; then
-            read -ep "\$ " -i "$cmd" ans
+            read -rep "\$ " -i "$cmd" ans
             # cmd may have been modified, so reassign it
             cmd="$ans"
         else
             # Old bash: no 'read -i' support
             # (Can't edit commands in-place)
             ans="$cmd"
-            read -ep "\$ $cmd" ans
+            read -rep "\$ $cmd" ans
         fi
     else
         if [[ "$opt_e" == 1 ]]; then
