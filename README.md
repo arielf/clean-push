@@ -87,6 +87,20 @@ Figuring-out the *main* branch actual name is harder.
 
 Better heuristics for figuring out the later are welcome (please open a github issue if you know a more reliable and elegant solution).
 
+## Usage:
+
+While working on your work/topic branch, you can run any of:
+
+```
+    clean-push [<main-branch-name>]
+
+    4-way-diff [<main-branch-name>]
+```
+
+The argument is optional. If you don't provide it the script(s) will
+try to guess it.  See also the `Customizing behavior` section below.
+
+
 ## 4-way-diff
 
 `4-way-diff` is a handy script that provides a quick, non-destructive,
@@ -149,6 +163,43 @@ To fix:
 (3) remote work doesn't exist (already merged?)
 (4) local work == local main, no need to pull in main, cool
 ```
+
+## Customizing behavior
+
+The following default behaviors can be changed in both
+`clean-push` and `4-way-diff`:
+
+1. Name of "upstream" (git remote repository location)
+2. Names of "main" branch-names to try
+
+1. If your remote is not called `origin`, you may change the variable
+   you should change the default value of the `UPSTREAM` variable in the
+   code, from:
+
+```
+UPSTREAM=${UPSTREAM:-origin}
+```
+
+to:
+
+```
+UPSTREAM=${UPSTREAM:-<your_upstream_name>}
+```
+
+2. In order to figure out the `"main"` branch from which you started
+and want to merge into, the code makes a few possible guesses.
+
+If these values don't work for you, you may change the value
+of `MAIN_BRANCH_NAMES=( ... )` in the code.
+
+You may also pass an explicit "main" branch name argument to
+any of the scripts which will disable the guessing altogether, e.g.:
+
+```
+    # Run a clean-push vs 'cicd-branch'
+    clean-push cicd-branch
+```
+
 
 ## Caveats
 

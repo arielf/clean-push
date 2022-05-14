@@ -23,12 +23,11 @@
 #
 PROG="$(basename "$0")"
 
-# Default name to use for 'origin' (some call it 'remote' or 'upstream')
-# (Adapt to taste)
+# Default name to use for 'origin'
+# Some call it 'remote' or 'upstream'- adapt to taste
 UPSTREAM=${UPSTREAM:-origin}
 
-# Default names to try in order to guess 'main/master' branches
-# (Adapt to taste)
+# Default names to try (guess) 'main/master' branch name - adapt to taste
 MAIN_BRANCH_NAMES=( 'dev' 'main' 'master' )
 
 #
@@ -180,7 +179,7 @@ function get-main-branch-name() {
     local lc
     lc="$(reflog-last-checkout)"
 
-    # $arg is explicitly passed by user, other are guesses
+    # $arg is explicitly passed by user, others are guesses
     for branch in "$arg" "${MAIN_BRANCH_NAMES[@]}" "$lc"; do
         if [[ -z "$branch" ]]; then
             continue
