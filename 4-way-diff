@@ -15,7 +15,12 @@
 # Author: Ariel Faigon, 2021
 #
 
+# Default name to use for 'origin'
+# Some call it 'remote' or 'upstream'- adapt to taste
 UPSTREAM=${UPSTREAM:-origin}
+
+# Default names to try (guess) 'main/master' branch name - adapt to taste
+MAIN_BRANCH_NAMES=( 'dev' 'main' 'master' )
 
 #
 # $TB branch is throwaway, temporary to do the sync/merge work
@@ -66,12 +71,12 @@ function local-branch-exists() {
 }
 
 function get-main-branch-name() {
-    local pb="$1"       # preferred branch (optional)
-
+    local arg="$1"       # preferred branch (optional)
     local lc
     lc="$(reflog-last-checkout)"
 
-    for branch in "$pb" 'dev' 'staging' 'main' 'master' "$lc"; do
+    # $arg is explicitly passed by user, others are guesses
+    for branch in "$arg" "${MAIN_BRANCH_NAMES[@]}" "$lc"; do
         if [[ -z "$branch" ]]; then
             continue
         fi
