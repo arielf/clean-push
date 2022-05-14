@@ -23,7 +23,13 @@
 #
 PROG="$(basename "$0")"
 
+# Default name to use for 'origin' (some call it 'remote' or 'upstream')
+# (Adapt to taste)
 UPSTREAM=${UPSTREAM:-origin}
+
+# Default names to try in order to guess 'main/master' branches
+# (Adapt to taste)
+MAIN_BRANCH_NAMES=( 'dev' 'main' 'master' )
 
 #
 # $TB branch is throwaway, temporary to do the sync/merge work
@@ -174,7 +180,8 @@ function get-main-branch-name() {
     local lc
     lc="$(reflog-last-checkout)"
 
-    for branch in "$arg" 'dev' 'staging' 'main' 'master' "$lc"; do
+    # $arg is explicitly passed by user, other are guesses
+    for branch in "$arg" "${MAIN_BRANCH_NAMES[@]}" "$lc"; do
         if [[ -z "$branch" ]]; then
             continue
         fi
