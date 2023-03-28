@@ -221,11 +221,14 @@ any of the scripts which will disable the guessing altogether, e.g.:
 Then `clean-push` may be useful for work on one fork, but may not be
 useful beyond it.
 
-## Big credit:
+## Credits:
 
 `clean-push` is based on method (1) of [this excellent page by Lars Kellogg-Stedman](https://blog.oddbit.com/post/2019-06-17-avoid-rebase-hell-squashing-wi/)
 
 Before discovering that page, I tried several unsatisfactory solutions to the problem, all of which fell short on some aspect of the problems described above.
+
+Thanks to Steve Malmskog & Jordan Bucholtz for their early testing &
+contributions.
 
 ## Portability notes
 
