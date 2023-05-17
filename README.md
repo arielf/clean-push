@@ -200,6 +200,47 @@ any of the scripts which will disable the guessing altogether, e.g.:
     clean-push cicd-branch
 ```
 
+## HOWTO
+
+First, make sure the two utilities:
+
+    clean-push
+    4-way-diff
+
+are always in your `$PATH`.  I simply have `~/bin` in my `$PATH`
+and have them both copied there, like this:
+
+    mkdir -p ~/bin
+
+    # Make sure the two scripts are executable:
+    chmod a+rx clean-push 4-way-diff
+
+    cp clean-push 4-way-diff ~/bin
+
+    # Make sure you have ~/bin in your PATH.
+    # This has to be in your ~/.bashrc or ~/.profile
+    export PATH=~/bin:$PATH
+
+Now go to your repo (cd .../your/repository)
+Assuming you start in branch 'main':
+
+    # Create the 'work' branch.
+    git checkout -b mydev
+
+    # Add/remove files and make changes as you would normally do in git...
+
+    # Once: ready to push, make sure everything is committed:
+    git commit -a
+
+    # Now that your repo is 'clean', run the clean push
+    clean-push
+
+Similarly, to compare to remote, just run:
+
+    4-way-diff
+
+That's all there is to it!
+
 
 ## Caveats
 
